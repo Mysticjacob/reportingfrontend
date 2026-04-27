@@ -199,7 +199,6 @@ export default function RegisterScreen({ navigation }) {
             </View>
           )}
 
-          {/* STEP 1 */}
           {step === 1 && (
             <View>
               <Text style={styles.cardTitle}>Choose your role</Text>
@@ -278,7 +277,6 @@ export default function RegisterScreen({ navigation }) {
             </View>
           )}
 
-          {/* STEP 2 */}
           {step === 2 && (
             <View>
               <Text style={styles.cardTitle}>Review & confirm</Text>
