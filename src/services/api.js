@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const HOST = 'https://reportingbackend.onrender.com';
+const HOST = 'https://reportingbackend.onrender.com'; 
 
 export const api = axios.create({
   baseURL: `${HOST}/api`,

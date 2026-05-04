@@ -19,11 +19,7 @@ import { colors, spacing } from '../../theme/theme';
 
 const PRIMARY = colors.primary || '#4F8EF7';
 
-const STREAMS = [
-  'Software Engineering',
-  'Information Technology',
-  'Business IT',
-];
+// Faculty + program are taken from the PL's account on the server.
 
 export default function ManageModulesScreen() {
   const [list, setList] = useState([]);
@@ -35,7 +31,7 @@ export default function ManageModulesScreen() {
     courseName: '',
     venue: '',
     scheduledTime: '',
-    stream: '',
+    
     totalStudents: '',
     lecturerId: '',
     lecturerName: '',
@@ -85,7 +81,7 @@ export default function ManageModulesScreen() {
         courseName: '',
         venue: '',
         scheduledTime: '',
-        stream: '',
+        
         totalStudents: '',
         lecturerId: '',
         lecturerName: '',
@@ -179,40 +175,6 @@ export default function ManageModulesScreen() {
               )
             }
           />
-          <Text style={styles.label}>
-            Stream
-          </Text>
-
-          <View style={styles.wrap}>
-            {STREAMS.map(s => (
-              <TouchableOpacity
-                key={s}
-                onPress={() =>
-                  update(
-                    'stream',
-                    s
-                  )
-                }
-                style={[
-                  styles.tag,
-                  form.stream ===
-                    s &&
-                    styles.tagActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tagText,
-                    form.stream ===
-                      s &&
-                      styles.tagTextActive,
-                  ]}
-                >
-                  {s}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
 
           <Text style={styles.label}>
             Assign Lecturer
@@ -302,7 +264,7 @@ export default function ManageModulesScreen() {
                   }
                 >
                   {c.courseCode} •{' '}
-                  {c.stream || '—'}
+                  {c.program || c.stream || '—'}
                 </Text>
               </View>
             </View>

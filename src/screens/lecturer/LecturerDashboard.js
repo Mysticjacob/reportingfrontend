@@ -26,15 +26,7 @@ const GREEN      = '#16A34A';
 const AMBER      = '#D97706';
 const RED        = '#DC2626';
 
-const COURSE_PALETTE = [
-  { accent: '#3B6FD4', icon: 'book-open' },
-  { accent: '#16A34A', icon: 'layers'    },
-  { accent: '#D97706', icon: 'cpu'       },
-  { accent: '#9333EA', icon: 'code'      },
-  { accent: '#E11D48', icon: 'activity'  },
-  { accent: '#0284C7', icon: 'globe'     },
-];
-const palette = (i) => COURSE_PALETTE[i % COURSE_PALETTE.length];
+const CARD_ICON = 'book-open';
 
 const greetingByHour = () => {
   const h = new Date().getHours();
@@ -127,20 +119,19 @@ function MetaRow({ icon, label }) {
   );
 }
 
-function CourseCard({ course, index, onPress }) {
-  const p = palette(index);
+function CourseCard({ course, onPress }) {
   return (
     <TouchableOpacity style={s.courseCard} onPress={onPress} activeOpacity={0.8}>
-      <View style={[s.courseStripe, { backgroundColor: p.accent }]} />
+      <View style={s.courseStripe} />
 
-      <View style={[s.courseIcon, { backgroundColor: p.accent + '1A' }]}>
-        <Icon name={p.icon} size={18} color={p.accent} />
+      <View style={s.courseIcon}>
+        <Icon name={CARD_ICON} size={18} color={ACCENT} />
       </View>
 
       <View style={s.courseInfo}>
         <Text style={s.courseName} numberOfLines={1}>{course.courseName}</Text>
-        <View style={[s.codeChip, { backgroundColor: p.accent + '15' }]}>
-          <Text style={[s.codeChipText, { color: p.accent }]}>{course.courseCode}</Text>
+        <View style={s.codeChip}>
+          <Text style={s.codeChipText}>{course.courseCode}</Text>
         </View>
         <View style={s.courseMeta}>
           <MetaRow icon="map-pin" label={course.venue || 'TBA'} />
@@ -151,7 +142,7 @@ function CourseCard({ course, index, onPress }) {
         </View>
       </View>
 
-      <Icon name="chevron-right" size={16} color={p.accent} />
+      <Icon name="chevron-right" size={16} color={ACCENT} />
     </TouchableOpacity>
   );
 }
@@ -178,9 +169,9 @@ export default function LecturerDashboard() {
   const { user } = useAuth();
   const navigation = useNavigation();
 
-  const [courses, setCourses]   = useState([]);
-  const [reports, setReports]   = useState([]);
-  const [ratings, setRatings]   = useState([]);
+  const [courses, setCourses]    = useState([]);
+  const [reports, setReports]    = useState([]);
+  const [ratings, setRatings]    = useState([]);
   const [refreshing, setRefresh] = useState(false);
 
   const load = useCallback(async () => {
@@ -252,11 +243,10 @@ export default function LecturerDashboard() {
             <Text style={s.emptyTitle}>No courses assigned yet</Text>
           </View>
         ) : (
-          courses.map((c, i) => (
+          courses.map((c) => (
             <CourseCard
               key={c.id}
               course={c}
-              index={i}
               onPress={() => navigation.navigate('Classes', { courseId: c.id })}
             />
           ))
@@ -331,12 +321,20 @@ const s = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
-  courseStripe: { width: 4, alignSelf: 'stretch' },
-  courseIcon:   { width: 44, height: 44, borderRadius: 11, alignItems: 'center', justifyContent: 'center', margin: 12 },
+  courseStripe: { width: 4, alignSelf: 'stretch', backgroundColor: ACCENT },
+  courseIcon:   {
+    width: 44, height: 44, borderRadius: 11,
+    alignItems: 'center', justifyContent: 'center',
+    margin: 12, backgroundColor: ACCENT + '1A',
+  },
   courseInfo:   { flex: 1, paddingVertical: 12 },
   courseName:   { fontSize: 14, fontWeight: '700', color: TEXT_DARK, marginBottom: 4 },
-  codeChip:     { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, alignSelf: 'flex-start', marginBottom: 6 },
-  codeChipText: { fontSize: 10, fontWeight: '700' },
+  codeChip:     {
+    borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2,
+    alignSelf: 'flex-start', marginBottom: 6,
+    backgroundColor: ACCENT + '15',
+  },
+  codeChipText: { fontSize: 10, fontWeight: '700', color: ACCENT },
   courseMeta:   { gap: 3 },
   metaRow:      { flexDirection: 'row', alignItems: 'center', gap: 5 },
   metaText:     { fontSize: 11, color: TEXT_LIGHT, fontWeight: '500' },

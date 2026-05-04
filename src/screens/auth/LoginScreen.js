@@ -1,16 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  TouchableOpacity,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { View,Text,ScrollView,StyleSheet, Alert,TouchableOpacity, Animated, KeyboardAvoidingView, Platform, StatusBar,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
@@ -62,12 +51,6 @@ export default function LoginScreen({ navigation }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <StatusBar barStyle="dark-content" />
-
-      <View style={styles.headerDecor} pointerEvents="none">
-        <View style={[styles.blob, styles.blob1]} />
-        <View style={[styles.blob, styles.blob2]} />
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.wrap}
         showsVerticalScrollIndicator={false}
@@ -151,9 +134,6 @@ const styles = StyleSheet.create({
   wrap: { padding: spacing.xl, paddingTop: spacing.xxl * 1.5, flexGrow: 1 },
 
   headerDecor: { position: 'absolute', top: 0, left: 0, right: 0, height: 280, overflow: 'hidden' },
-  blob: { position: 'absolute', borderRadius: 999, opacity: 0.12 },
-  blob1: { width: 280, height: 280, backgroundColor: colors.primary, top: -100, right: -80 },
-  blob2: { width: 200, height: 200, backgroundColor: colors.primary, top: -40, left: -60, opacity: 0.08 },
 
   brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
   logo: {

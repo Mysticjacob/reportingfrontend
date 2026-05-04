@@ -65,7 +65,6 @@ function SummaryCard({ items }) {
 
   return (
     <View style={s.summary}>
-      {/* Three stat blocks */}
       <View style={s.summaryStats}>
         <View style={s.summaryStat}>
           <Text style={[s.summaryVal, { color: GREEN }]}>{present}</Text>
@@ -130,7 +129,6 @@ function AttendanceRow({ record, isLast }) {
 
   return (
     <View style={[s.row, !isLast && s.rowBorder]}>
-      {/* Status stripe */}
       <View style={[s.stripe, { backgroundColor: present ? GREEN : RED }]} />
       <View style={s.dateCol}>
         <Text style={s.dateDay}>{dayNum}</Text>
@@ -140,7 +138,6 @@ function AttendanceRow({ record, isLast }) {
 
       <View style={s.rowDivider} />
       <View style={s.rowInfo}>
-        {/* Course name — primary */}
         <Text style={s.rowCourse} numberOfLines={1}>
           {courseName ?? 'Unknown Course'}
         </Text>
@@ -190,7 +187,6 @@ function MonthGroup({ month, records }) {
 
   return (
     <View style={s.groupCard}>
-      {/* Group header */}
       <View style={s.groupHeader}>
         <Text style={s.groupMonth}>{month}</Text>
         <View style={[s.groupRate, { backgroundColor: attendanceColor(rate) + '18' }]}>

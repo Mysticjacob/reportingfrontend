@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "LUCT",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "luct",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.selekane.frontend"
+      "package": "com.selekane.luct"
     },
     "web": {
       "output": "static",
@@ -48,8 +48,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ba7d5b6e-3804-4291-b2b9-5f5a53835e52"
+        "projectId": "f853cd79-0010-4fcf-9b3c-d654b764926a"
       }
-    }
+    },
+    "owner": "selekane"
   }
 }

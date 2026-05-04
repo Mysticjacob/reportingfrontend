@@ -67,7 +67,6 @@ export default function RatingsListScreen() {
               key={r.id}
               style={styles.card}
             >
-              {/* TOP */}
               <View style={styles.topRow}>
                 <View
                   style={[
@@ -113,8 +112,6 @@ export default function RatingsListScreen() {
                   {r.score}/5
                 </Text>
               </View>
-
-              {/* COMMENT */}
               {r.comment ? (
                 <Text style={styles.comment}>
                   {r.comment}

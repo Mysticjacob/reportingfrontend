@@ -17,14 +17,7 @@ const BORDER     = '#E8ECF0';
 const SUCCESS    = '#16A34A';
 const AMBER      = '#D97706';
 
-const PALETTE = [
-  { accent: '#3B6FD4', icon: 'book-open' },
-  { accent: '#16A34A', icon: 'layers'    },
-  { accent: '#D97706', icon: 'cpu'       },
-  { accent: '#9333EA', icon: 'code'      },
-  { accent: '#E11D48', icon: 'activity'  },
-  { accent: '#0284C7', icon: 'globe'     },
-];
+const CARD_ICON = 'book-open';
 
 function InfoRow({ icon, label, value }) {
   if (!value) return null;
@@ -39,16 +32,15 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-function CourseCard({ course, index }) {
-  const p = PALETTE[index % PALETTE.length];
+function CourseCard({ course }) {
   const hasLecturer = !!course.lecturerName;
 
   return (
-    <View style={[s.card, { borderLeftColor: p.accent, borderLeftWidth: 4 }]}>
+    <View style={s.card}>
       {/* ── header ── */}
       <View style={s.cardHeader}>
-        <View style={[s.iconWrap, { backgroundColor: p.accent + '18' }]}>
-          <Icon name={p.icon} size={20} color={p.accent} />
+        <View style={s.iconWrap}>
+          <Icon name={CARD_ICON} size={20} color={ACCENT} />
         </View>
 
         <View style={{ flex: 1 }}>
@@ -56,14 +48,14 @@ function CourseCard({ course, index }) {
             {course.className || course.courseName}
           </Text>
           <View style={s.chipRow}>
-            <View style={[s.chip, { backgroundColor: p.accent + '15' }]}>
-              <Text style={[s.chipText, { color: p.accent }]}>
+            <View style={s.chip}>
+              <Text style={s.chipText}>
                 {course.courseCode || '—'}
               </Text>
             </View>
             {course.stream ? (
-              <View style={[s.chip, { backgroundColor: '#F1F5F9' }]}>
-                <Text style={[s.chipText, { color: TEXT_MID }]}>{course.stream}</Text>
+              <View style={s.chipStream}>
+                <Text style={s.chipStreamText}>{course.stream}</Text>
               </View>
             ) : null}
           </View>
@@ -71,10 +63,10 @@ function CourseCard({ course, index }) {
       </View>
 
       <View style={s.details}>
-        <InfoRow icon="map-pin"  label="Venue"      value={course.venue         || 'TBA'} />
-        <InfoRow icon="clock"    label="Schedule"   value={course.scheduledTime || 'TBA'} />
-        <InfoRow icon="user"     label="Lecturer"   value={course.lecturerName  || 'Unassigned'} />
-        <InfoRow icon="users"    label="Students"   value={course.totalStudents ? `${course.totalStudents} registered` : null} />
+        <InfoRow icon="map-pin" label="Venue"    value={course.venue         || 'TBA'} />
+        <InfoRow icon="clock"   label="Schedule" value={course.scheduledTime || 'TBA'} />
+        <InfoRow icon="user"    label="Lecturer" value={course.lecturerName  || 'Unassigned'} />
+        <InfoRow icon="users"   label="Students" value={course.totalStudents ? `${course.totalStudents} registered` : null} />
       </View>
 
       <View style={s.statusRow}>
@@ -140,11 +132,11 @@ export default function PRLCourseScreen() {
     if (!query) return true;
     const q = query.toLowerCase();
     return (
-      (c.className     || '').toLowerCase().includes(q) ||
-      (c.courseName    || '').toLowerCase().includes(q) ||
-      (c.courseCode    || '').toLowerCase().includes(q) ||
-      (c.venue         || '').toLowerCase().includes(q) ||
-      (c.lecturerName  || '').toLowerCase().includes(q)
+      (c.className    || '').toLowerCase().includes(q) ||
+      (c.courseName   || '').toLowerCase().includes(q) ||
+      (c.courseCode   || '').toLowerCase().includes(q) ||
+      (c.venue        || '').toLowerCase().includes(q) ||
+      (c.lecturerName || '').toLowerCase().includes(q)
     );
   });
 
@@ -222,7 +214,7 @@ export default function PRLCourseScreen() {
               Showing {filtered.length} of {courses.length} class{courses.length !== 1 ? 'es' : ''}
             </Text>
             {filtered.map((c, i) => (
-              <CourseCard key={c.id || i} course={c} index={i} />
+              <CourseCard key={c.id || i} course={c} />
             ))}
           </>
         )}
@@ -264,7 +256,7 @@ const s = StyleSheet.create({
     paddingVertical: 8,
   },
   countBadgeText:  { fontSize: 20, fontWeight: '900', color: ACCENT },
-  countBadgeLabel: { fontSize: 9,  fontWeight: '700', color: ACCENT, marginTop: 1, letterSpacing: 0.5 },
+  countBadgeLabel: { fontSize: 9, fontWeight: '700', color: ACCENT, marginTop: 1, letterSpacing: 0.5 },
 
   searchWrap: {
     flexDirection: 'row', alignItems: 'center',
@@ -289,32 +281,42 @@ const s = StyleSheet.create({
     backgroundColor: CARD_BG, borderRadius: 18,
     padding: 16, marginBottom: 14,
     borderWidth: 1, borderColor: BORDER,
+    borderLeftWidth: 4, borderLeftColor: ACCENT,
     ...Platform.select({
       ios:     { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6 },
       android: { elevation: 2 },
     }),
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
-  iconWrap:   { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  iconWrap: {
+    width: 46, height: 46, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 12, backgroundColor: ACCENT + '18',
+  },
   courseName: { fontSize: 15, fontWeight: '800', color: TEXT_DARK, marginBottom: 6, lineHeight: 20 },
   chipRow:    { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  chip:       { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  chipText:   { fontSize: 10, fontWeight: '700' },
+  chip:       { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: ACCENT + '15' },
+  chipText:   { fontSize: 10, fontWeight: '700', color: ACCENT },
+  chipStream:     { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, backgroundColor: '#F1F5F9' },
+  chipStreamText: { fontSize: 10, fontWeight: '700', color: TEXT_MID },
 
-  details:     { gap: 8, marginBottom: 14 },
-  infoRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  infoIconWrap:{ width: 18, alignItems: 'center' },
-  infoLabel:   { fontSize: 11, fontWeight: '600', color: TEXT_LIGHT, width: 60 },
-  infoValue:   { flex: 1, fontSize: 13, color: TEXT_MID, fontWeight: '500' },
+  details:      { gap: 8, marginBottom: 14 },
+  infoRow:      { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  infoIconWrap: { width: 18, alignItems: 'center' },
+  infoLabel:    { fontSize: 11, fontWeight: '600', color: TEXT_LIGHT, width: 60 },
+  infoValue:    { flex: 1, fontSize: 13, color: TEXT_MID, fontWeight: '500' },
 
   statusRow:  { borderTopWidth: 1, borderTopColor: BORDER, paddingTop: 12 },
-  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
+  statusPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    alignSelf: 'flex-start', borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
   statusText: { fontSize: 11, fontWeight: '700' },
 
   skeleton: {
     height: 160, backgroundColor: '#E8ECF2',
-    borderRadius: 18, marginBottom: 14,
-    opacity: 0.5,
+    borderRadius: 18, marginBottom: 14, opacity: 0.5,
   },
 
   empty:      { alignItems: 'center', paddingVertical: 60 },

@@ -14,6 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import { api } from '../../services/api';
 import { colors, spacing } from '../../theme/theme';
+
 const ACCENT     = colors.primary ?? '#4F8EF7';
 const BG         = '#F5F7FA';
 const CARD_BG    = '#FFFFFF';
@@ -27,16 +28,7 @@ const GREEN      = '#16A34A';
 const GREEN_BG   = '#F0FDF4';
 
 const MAX_COMMENT = 300;
-
-const COURSE_PALETTE = [
-  { accent: '#3B6FD4', icon: 'book-open' },
-  { accent: '#16A34A', icon: 'layers'    },
-  { accent: '#D97706', icon: 'cpu'       },
-  { accent: '#9333EA', icon: 'code'      },
-  { accent: '#E11D48', icon: 'activity'  },
-  { accent: '#0284C7', icon: 'globe'     },
-];
-const palette = (i) => COURSE_PALETTE[i % COURSE_PALETTE.length];
+const CARD_ICON   = 'book-open';
 const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
 
 function Star({ filled, onPress, size = 32 }) {
@@ -90,7 +82,9 @@ function RatingForm({ score, setScore, comment, setComment, onSubmit, submitting
       <Text style={s.formLabel}>Your rating</Text>
       <StarRating score={score} onChange={setScore} />
 
-      <Text style={[s.formLabel, { marginTop: 16 }]}>Comment <Text style={s.optional}>(optional)</Text></Text>
+      <Text style={[s.formLabel, { marginTop: 16 }]}>
+        Comment <Text style={s.optional}>(optional)</Text>
+      </Text>
       <View style={s.commentWrap}>
         <TextInput
           style={s.commentInput}
@@ -129,11 +123,10 @@ function RatedBadge({ score }) {
   );
 }
 
-function EnrollmentCard({ enrollment, index, activeId, onToggle, onSubmit }) {
-  const isOpen    = activeId === enrollment.id;
-  const isRated   = !!enrollment._rated;
-  const p         = palette(index);
-  const course    = enrollment.course ?? {};
+function EnrollmentCard({ enrollment, activeId, onToggle, onSubmit }) {
+  const isOpen  = activeId === enrollment.id;
+  const isRated = !!enrollment._rated;
+  const course  = enrollment.course ?? {};
 
   const [score,      setScore]      = useState(5);
   const [comment,    setComment]    = useState('');
@@ -159,8 +152,8 @@ function EnrollmentCard({ enrollment, index, activeId, onToggle, onSubmit }) {
         activeOpacity={1}
       >
         <View style={s.cardHeader}>
-          <View style={[s.cardIcon, { backgroundColor: p.accent + '1A' }]}>
-            <Icon name={p.icon} size={18} color={p.accent} />
+          <View style={s.cardIcon}>
+            <Icon name={CARD_ICON} size={18} color={ACCENT} />
           </View>
 
           <View style={s.cardInfo}>
@@ -190,8 +183,8 @@ function EnrollmentCard({ enrollment, index, activeId, onToggle, onSubmit }) {
             {isRated ? (
               <RatedBadge score={enrollment._ratedScore} />
             ) : (
-              <View style={[s.rateBtn, { borderColor: p.accent }, isOpen && { backgroundColor: p.accent }]}>
-                <Text style={[s.rateBtnText, { color: isOpen ? '#FFF' : p.accent }]}>
+              <View style={[s.rateBtn, isOpen && s.rateBtnOpen]}>
+                <Text style={[s.rateBtnText, isOpen && s.rateBtnTextOpen]}>
                   {isOpen ? 'Cancel' : 'Rate'}
                 </Text>
               </View>
@@ -316,11 +309,10 @@ export default function RatingScreen() {
           </View>
         )}
 
-        {enrollments.map((e, i) => (
+        {enrollments.map((e) => (
           <EnrollmentCard
             key={e.id}
             enrollment={e}
-            index={i}
             activeId={activeId}
             onToggle={toggleActive}
             onSubmit={submitRating}
@@ -348,14 +340,10 @@ const s = StyleSheet.create({
     backgroundColor: CARD_BG, borderRadius: 14, padding: 14,
     marginBottom: 18, borderWidth: 1, borderColor: BORDER,
   },
-  progressInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  progressText: { fontSize: 13, fontWeight: '600', color: TEXT_MID },
-  progressTrack: {
-    height: 6, backgroundColor: BORDER, borderRadius: 3, overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%', backgroundColor: GOLD, borderRadius: 3,
-  },
+  progressInfo:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  progressText:  { fontSize: 13, fontWeight: '600', color: TEXT_MID },
+  progressTrack: { height: 6, backgroundColor: BORDER, borderRadius: 3, overflow: 'hidden' },
+  progressFill:  { height: '100%', backgroundColor: GOLD, borderRadius: 3 },
 
   card: {
     backgroundColor: CARD_BG, borderRadius: 18,
@@ -367,18 +355,24 @@ const s = StyleSheet.create({
     }),
   },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', padding: 16 },
-  cardIcon:   { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  cardInfo:   { flex: 1, marginRight: 10 },
-  cardName:   { fontSize: 14, fontWeight: '700', color: TEXT_DARK, marginBottom: 2 },
-  cardCode:   { fontSize: 11, fontWeight: '600', color: TEXT_LIGHT, marginBottom: 6 },
-  lecturerRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  cardIcon: {
+    width: 44, height: 44, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 12, backgroundColor: ACCENT + '1A',
+  },
+  cardInfo:     { flex: 1, marginRight: 10 },
+  cardName:     { fontSize: 14, fontWeight: '700', color: TEXT_DARK, marginBottom: 2 },
+  cardCode:     { fontSize: 11, fontWeight: '600', color: TEXT_LIGHT, marginBottom: 6 },
+  lecturerRow:  { flexDirection: 'row', alignItems: 'center', gap: 5 },
   lecturerName: { fontSize: 12, color: TEXT_LIGHT, fontWeight: '500', flex: 1 },
 
   rateBtn: {
-    borderWidth: 1.5, borderRadius: 20,
+    borderWidth: 1.5, borderRadius: 20, borderColor: ACCENT,
     paddingHorizontal: 14, paddingVertical: 5,
   },
-  rateBtnText: { fontSize: 12, fontWeight: '700' },
+  rateBtnOpen:     { backgroundColor: ACCENT },
+  rateBtnText:     { fontSize: 12, fontWeight: '700', color: ACCENT },
+  rateBtnTextOpen: { color: '#FFF' },
 
   ratedBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -387,10 +381,13 @@ const s = StyleSheet.create({
   },
   ratedBadgeText: { fontSize: 11, fontWeight: '700', color: GREEN },
 
-  form:       { paddingHorizontal: 16, paddingBottom: 16 },
-  formDivider:{ height: 1, backgroundColor: BORDER, marginBottom: 16 },
-  formLabel:  { fontSize: 12, fontWeight: '700', color: TEXT_MID, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
-  optional:   { fontWeight: '400', textTransform: 'none', letterSpacing: 0, color: TEXT_LIGHT },
+  form:        { paddingHorizontal: 16, paddingBottom: 16 },
+  formDivider: { height: 1, backgroundColor: BORDER, marginBottom: 16 },
+  formLabel:   {
+    fontSize: 12, fontWeight: '700', color: TEXT_MID,
+    letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10,
+  },
+  optional: { fontWeight: '400', textTransform: 'none', letterSpacing: 0, color: TEXT_LIGHT },
 
   starBlock: { alignItems: 'flex-start', marginBottom: 4 },
   starRow:   { flexDirection: 'row', marginBottom: 6 },
@@ -412,7 +409,7 @@ const s = StyleSheet.create({
     gap: 8, backgroundColor: ACCENT, borderRadius: 12, paddingVertical: 13,
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+  submitBtnText:     { fontSize: 14, fontWeight: '700', color: '#FFF' },
 
   empty:      { alignItems: 'center', paddingVertical: 50 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: TEXT_MID, marginTop: 12 },

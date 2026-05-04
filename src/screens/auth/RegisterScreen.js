@@ -24,18 +24,29 @@ const ROLES = [
   { id: 'pl',       label: 'PL',       icon: 'star-outline',       desc: 'Program Leader' },
 ];
 
-const STREAMS = [
-  { id: 'Software Engineering',  short: 'SE'  },
-  { id: 'Information Technology', short: 'IT'  },
-  { id: 'Business IT',           short: 'BIT' },
-];
+const FACULTIES = {
+  'Faculty of Information Communication and Technology': [
+    'Business IT',
+    'Information Technology',
+    'Software Engineering',
+  ],
+  'Faculty of Design and Innovation': [
+    'Graphic Design',
+    'Creative Advertising',
+  ],
+};
+const FACULTY_LIST = Object.keys(FACULTIES);
+const FACULTY_SHORT = {
+  'Faculty of Information Communication and Technology': 'FICT',
+  'Faculty of Design and Innovation': 'FDI',
+};
 
 const STEPS = ['Account', 'Role', 'Confirm'];
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
   const [form, setForm] = useState({
-    name: '', email: '', password: '', role: 'student', stream: '',
+    name: '', email: '', password: '', role: 'student', faculty: '', program: '',
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
@@ -64,8 +75,10 @@ export default function RegisterScreen({ navigation }) {
       if (!form.password) e.password = 'Password is required';
       else if (form.password.length < 6) e.password = 'Min 6 characters';
     }
-    if (step === 1 && form.role !== 'student' && !form.stream) {
-      e.stream = 'Please select a stream';
+    if (step === 1) {
+      // All roles need a faculty; only PRL skips program.
+      if (!form.faculty) e.faculty = 'Please select a faculty';
+      if (form.role !== 'prl' && !form.program) e.program = 'Please select a program';
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -92,7 +105,8 @@ export default function RegisterScreen({ navigation }) {
         email: form.email.trim(),
         password: form.password,
         role: form.role,
-        stream: form.role === 'student' ? null : form.stream || null,
+        faculty: form.faculty || null,
+        program: form.role === 'prl' ? null : (form.program || null),
       });
     } catch (e) {
       Alert.alert('Registration failed', e?.response?.data?.message || e.message);
@@ -108,12 +122,6 @@ export default function RegisterScreen({ navigation }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <StatusBar barStyle="dark-content" />
-
-      <View style={styles.headerDecor} pointerEvents="none">
-        <View style={[styles.blob, styles.blob1]} />
-        <View style={[styles.blob, styles.blob2]} />
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.wrap}
         showsVerticalScrollIndicator={false}
@@ -236,33 +244,53 @@ export default function RegisterScreen({ navigation }) {
                 })}
               </View>
 
-              {form.role !== 'student' && (
-                <View style={{ marginTop: spacing.lg }}>
-                  <Text style={styles.cardTitle}>Select your stream</Text>
-                  <Text style={styles.cardHint}>Pick the program you belong to</Text>
+              <View style={{ marginTop: spacing.lg }}>
+                <Text style={styles.cardTitle}>Select your faculty</Text>
+                <Text style={styles.cardHint}>Pick the faculty you belong to</Text>
+                <View>
+                  {FACULTY_LIST.map((f) => {
+                    const active = form.faculty === f;
+                    return (
+                      <TouchableOpacity
+                        key={f}
+                        onPress={() => { set('faculty', f); set('program', ''); }}
+                        activeOpacity={0.7}
+                        style={[styles.streamRow, active && styles.streamRowActive]}
+                      >
+                        <View style={[styles.streamShort, active && styles.streamShortActive]}>
+                          <Text style={[styles.streamShortText, active && styles.streamShortTextActive]}>
+                            {FACULTY_SHORT[f]}
+                          </Text>
+                        </View>
+                        <Text style={[styles.streamText, active && styles.streamTextActive]}>
+                          {f}
+                        </Text>
+                        <View style={[styles.radio, active && styles.radioActive]}>
+                          {active && <View style={styles.radioDot} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                {errors.faculty && <Text style={styles.error}>{errors.faculty}</Text>}
+              </View>
 
+              {form.faculty && form.role !== 'prl' && (
+                <View style={{ marginTop: spacing.lg }}>
+                  <Text style={styles.cardTitle}>Select your program</Text>
+                  <Text style={styles.cardHint}>Programs under {form.faculty}</Text>
                   <View>
-                    {STREAMS.map((s) => {
-                      const active = form.stream === s.id;
+                    {(FACULTIES[form.faculty] || []).map((p) => {
+                      const active = form.program === p;
                       return (
                         <TouchableOpacity
-                          key={s.id}
-                          onPress={() => set('stream', s.id)}
+                          key={p}
+                          onPress={() => set('program', p)}
                           activeOpacity={0.7}
                           style={[styles.streamRow, active && styles.streamRowActive]}
                         >
-                          <View style={[styles.streamShort, active && styles.streamShortActive]}>
-                            <Text
-                              style={[
-                                styles.streamShortText,
-                                active && styles.streamShortTextActive,
-                              ]}
-                            >
-                              {s.short}
-                            </Text>
-                          </View>
                           <Text style={[styles.streamText, active && styles.streamTextActive]}>
-                            {s.id}
+                            {p}
                           </Text>
                           <View style={[styles.radio, active && styles.radioActive]}>
                             {active && <View style={styles.radioDot} />}
@@ -271,7 +299,7 @@ export default function RegisterScreen({ navigation }) {
                       );
                     })}
                   </View>
-                  {errors.stream && <Text style={styles.error}>{errors.stream}</Text>}
+                  {errors.program && <Text style={styles.error}>{errors.program}</Text>}
                 </View>
               )}
             </View>
@@ -288,10 +316,10 @@ export default function RegisterScreen({ navigation }) {
                 <ReviewRow
                   label="Role"
                   value={ROLES.find((r) => r.id === form.role)?.label}
-                  last={form.role === 'student'}
                 />
-                {form.role !== 'student' && (
-                  <ReviewRow label="Stream" value={form.stream || '—'} last />
+                <ReviewRow label="Faculty" value={form.faculty || '—'} last={form.role === 'prl'} />
+                {form.role !== 'prl' && (
+                  <ReviewRow label="Program" value={form.program || '—'} last />
                 )}
               </View>
 
@@ -348,9 +376,6 @@ const styles = StyleSheet.create({
   wrap: { padding: spacing.xl, paddingTop: spacing.xxl * 1.2, flexGrow: 1 },
 
   headerDecor: { position: 'absolute', top: 0, left: 0, right: 0, height: 280, overflow: 'hidden' },
-  blob: { position: 'absolute', borderRadius: 999, opacity: 0.12 },
-  blob1: { width: 280, height: 280, backgroundColor: colors.primary, top: -100, right: -80 },
-  blob2: { width: 200, height: 200, backgroundColor: colors.primary, top: -40, left: -60, opacity: 0.08 },
 
   brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
   logo: {
