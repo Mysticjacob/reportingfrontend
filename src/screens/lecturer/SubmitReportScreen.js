@@ -28,6 +28,7 @@ export default function SubmitReportScreen() {
 
   const [courses, setCourses] = useState([]);
   const [course, setCourse] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     className: '',
@@ -59,7 +60,9 @@ export default function SubmitReportScreen() {
 
   const submit = async () => {
     if (!course) return Alert.alert('Select a course');
+    if (submitting) return;
 
+    setSubmitting(true);
     try {
       await api.post('/reports', {
         ...form,
@@ -85,6 +88,8 @@ export default function SubmitReportScreen() {
       });
     } catch (e) {
       Alert.alert('Failed', e?.response?.data?.message || e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -187,8 +192,10 @@ export default function SubmitReportScreen() {
           />
 
           <Button
-            title="Submit Report"
+            title={submitting ? 'Submitting...' : 'Submit Report'}
             onPress={submit}
+            loading={submitting}
+            disabled={submitting}
             style={{ marginTop: spacing.md }}
           />
         </View>

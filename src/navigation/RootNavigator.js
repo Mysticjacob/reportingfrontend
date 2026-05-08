@@ -33,7 +33,6 @@ import LectureReportsScreen from '../screens/lecturer/ViewReport';
 
 import PRLDashboard from '../screens/prl/PRLDashboard';
 import PRLReportsScreen from '../screens/prl/PRLReportsScreen';
-import MonitoringScreen from '../screens/prl/MonitoringScreen';
 import PRLCourseScreen from '../screens/prl/PRLCourseScreen';
 
 import PLDashboard from '../screens/pl/PLDashboard';

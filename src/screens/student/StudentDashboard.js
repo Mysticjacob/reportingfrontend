@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { colors, spacing } from '../../theme/theme';
+
 const ACCENT      = colors.primary  ?? '#4F8EF7';
 const BG          = '#F5F7FA';
 const CARD_BG     = '#FFFFFF';
@@ -27,16 +28,10 @@ const GREEN       = '#22C55E';
 const AMBER       = '#F59E0B';
 const RED         = '#EF4444';
 
-const COURSE_PALETTE = [
-  { bg: '#EEF4FF', accent: '#3B6FD4', icon: 'book-open' },
-  { bg: '#F0FDF4', accent: '#16A34A', icon: 'layers' },
-  { bg: '#FFF7ED', accent: '#D97706', icon: 'cpu' },
-  { bg: '#FDF4FF', accent: '#9333EA', icon: 'code' },
-  { bg: '#FFF1F2', accent: '#E11D48', icon: 'activity' },
-  { bg: '#F0F9FF', accent: '#0284C7', icon: 'globe' },
-];
+const CARD_ICON   = 'book-open';
 
 const { width: SCREEN_W } = Dimensions.get('window');
+
 const attendanceColor = (rate) => {
   if (rate >= 75) return GREEN;
   if (rate >= 50) return AMBER;
@@ -64,13 +59,11 @@ function AttendanceRing({ rate }) {
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', width: SIZE, height: SIZE }}>
-      {/* Background track */}
       <View style={{
         position: 'absolute',
         width: SIZE, height: SIZE, borderRadius: SIZE / 2,
         borderWidth: STROKE, borderColor: BORDER,
       }} />
-      {/* Foreground — faked with a rotated arc using border */}
       <View style={{
         position: 'absolute',
         width: SIZE, height: SIZE, borderRadius: SIZE / 2,
@@ -91,17 +84,13 @@ function AttendanceRing({ rate }) {
   );
 }
 
-/** Hero stats banner */
 function StatsBanner({ courseCount, rate, presentCount, totalCount }) {
   return (
     <View style={s.banner}>
-      {/* Left: ring */}
       <AttendanceRing rate={rate} />
 
-      {/* Separator */}
       <View style={s.bannerDivider} />
 
-      {/* Right: two stat blocks */}
       <View style={s.bannerStats}>
         <View style={s.bannerStat}>
           <Text style={s.bannerStatValue}>{courseCount}</Text>
@@ -117,7 +106,6 @@ function StatsBanner({ courseCount, rate, presentCount, totalCount }) {
   );
 }
 
-/** Quick-action pill button */
 function QuickAction({ icon, label, onPress, tint }) {
   return (
     <TouchableOpacity style={[s.qa, { backgroundColor: tint + '18' }]} onPress={onPress} activeOpacity={0.75}>
@@ -129,9 +117,7 @@ function QuickAction({ icon, label, onPress, tint }) {
   );
 }
 
-/** Course card — tappable, navigates to Courses */
-function CourseCard({ enrollment, index, onPress }) {
-  const palette = COURSE_PALETTE[index % COURSE_PALETTE.length];
+function CourseCard({ enrollment, onPress }) {
   const scale = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 30 }).start();
@@ -142,7 +128,7 @@ function CourseCard({ enrollment, index, onPress }) {
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
-        style={[s.courseCard, { backgroundColor: palette.bg, borderColor: palette.accent + '30' }]}
+        style={[s.courseCard, { backgroundColor: CARD_BG, borderColor: ACCENT + '30' }]}
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
@@ -150,12 +136,10 @@ function CourseCard({ enrollment, index, onPress }) {
         accessibilityRole="button"
         accessibilityLabel={`Open ${course.courseName ?? 'course'}`}
       >
-        {/* Icon badge */}
-        <View style={[s.courseIconWrap, { backgroundColor: palette.accent + '18' }]}>
-          <Icon name={palette.icon} size={18} color={palette.accent} />
+        <View style={[s.courseIconWrap, { backgroundColor: ACCENT + '18' }]}>
+          <Icon name={CARD_ICON} size={18} color={ACCENT} />
         </View>
 
-        {/* Info */}
         <View style={s.courseInfo}>
           <Text style={[s.courseName, { color: TEXT_DARK }]} numberOfLines={1}>
             {course.courseName ?? 'Course'}
@@ -177,8 +161,7 @@ function CourseCard({ enrollment, index, onPress }) {
           ) : null}
         </View>
 
-        {/* Chevron */}
-        <Icon name="chevron-right" size={16} color={palette.accent} style={{ marginLeft: 4 }} />
+        <Icon name="chevron-right" size={16} color={ACCENT} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -199,6 +182,7 @@ function AttendanceRow({ item }) {
     </View>
   );
 }
+
 function SectionHeader({ title, actionLabel, onAction }) {
   return (
     <View style={s.sectionHeader}>
@@ -253,13 +237,11 @@ export default function StudentDashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ACCENT} />
         }
       >
-        {/* Greeting */}
         <View style={s.greeting}>
           <Text style={s.greetSub}>{greetingByHour()}</Text>
           <Text style={s.greetName}>{firstName}</Text>
         </View>
 
-        {/*  Stats Banner  */}
         <StatsBanner
           courseCount={enrollments.length}
           rate={rate}
@@ -267,15 +249,13 @@ export default function StudentDashboard() {
           totalCount={attendance.length}
         />
 
-        {/*  Quick Actions */}
         <View style={s.qaRow}>
-          <QuickAction icon="book-open"   label="Courses"    tint={ACCENT}  onPress={() => navigation.navigate('Courses')} />
-          <QuickAction icon="check-square" label="Attendance" tint="#16A34A" onPress={() => navigation.navigate('Attendance')} />
-          <QuickAction icon="calendar"    label="Classes"    tint="#D97706" onPress={() => navigation.navigate('Classes')} />
-          <QuickAction icon="star"        label="Rate"       tint="#9333EA" onPress={() => navigation.navigate('Rate')} />
+          <QuickAction icon="book-open"    label="Courses"    tint={ACCENT}    onPress={() => navigation.navigate('Courses')} />
+          <QuickAction icon="check-square" label="Attendance" tint="#16A34A"   onPress={() => navigation.navigate('Attendance')} />
+          <QuickAction icon="calendar"     label="Classes"    tint="#D97706"   onPress={() => navigation.navigate('Classes')} />
+          <QuickAction icon="star"         label="Rate"       tint="#9333EA"   onPress={() => navigation.navigate('Rate')} />
         </View>
 
-        {/* Enrolled Courses */}
         <SectionHeader
           title="My Courses"
           actionLabel={enrollments.length ? 'View all' : undefined}
@@ -295,13 +275,11 @@ export default function StudentDashboard() {
             <CourseCard
               key={e.id ?? i}
               enrollment={e}
-              index={i}
               onPress={() => navigation.navigate('Courses', { courseId: e.course?.id })}
             />
           ))
         )}
 
-        {/*Recent Attendance */}
         {recentAtt.length > 0 && (
           <>
             <SectionHeader
@@ -330,7 +308,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   scroll: { paddingHorizontal: spacing.lg ?? 20, paddingTop: 4, paddingBottom: 20 },
 
-  // Greeting
   greeting: { marginTop: 20, marginBottom: 20 },
   greetSub: { fontSize: 13, color: TEXT_LIGHT, fontWeight: '500', letterSpacing: 0.3 },
   greetName: {
@@ -342,7 +319,6 @@ const s = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Banner
   banner: {
     backgroundColor: CARD_BG,
     borderRadius: 20,
@@ -367,7 +343,6 @@ const s = StyleSheet.create({
   bannerStatLabel: { fontSize: 10, color: TEXT_LIGHT, fontWeight: '600', marginTop: 3, textAlign: 'center' },
   bannerStatDivider: { width: 1, height: 36, backgroundColor: BORDER },
 
-  // Quick actions
   qaRow: { flexDirection: 'row', gap: 8, marginBottom: 26 },
   qa: {
     flex: 1,
@@ -383,7 +358,6 @@ const s = StyleSheet.create({
   },
   qaLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.3 },
 
-  // Section header
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: 12,
@@ -395,7 +369,6 @@ const s = StyleSheet.create({
   },
   sectionAction: { fontSize: 12, fontWeight: '600', color: ACCENT },
 
-  // Course cards
   courseCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -415,7 +388,6 @@ const s = StyleSheet.create({
   courseTimeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
   courseTime: { fontSize: 11, color: TEXT_LIGHT, fontWeight: '500' },
 
-  // Empty state
   empty: {
     alignItems: 'center', justifyContent: 'center',
     paddingVertical: 36, backgroundColor: CARD_BG,
@@ -429,7 +401,6 @@ const s = StyleSheet.create({
   },
   emptyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
 
-  // Attendance
   attendCard: {
     backgroundColor: CARD_BG, borderRadius: 16,
     borderWidth: 1, borderColor: BORDER,

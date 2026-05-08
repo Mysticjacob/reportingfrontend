@@ -6,10 +6,10 @@ import {
   Alert,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
   LayoutAnimation,
   Platform,
   UIManager,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -57,10 +57,19 @@ const Section = ({ title, children }) => (
 export default function PLReportsScreen() {
   const [reports, setReports] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const [feedbackOpenId, setFeedbackOpenId] = useState(null);
-  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const load = () => api.get('/reports').then((r) => setReports(r.data));
+  const load = async () => {
+    try {
+      setLoading(true);
+      const r = await api.get('/reports');
+      setReports(r.data);
+    } catch (e) {
+      Alert.alert('Failed to load', e?.response?.data?.message || e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     load();
@@ -69,22 +78,6 @@ export default function PLReportsScreen() {
   const toggleExpand = (id) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId((prev) => (prev === id ? null : id));
-    if (feedbackOpenId && feedbackOpenId !== id) {
-      setFeedbackOpenId(null);
-      setText('');
-    }
-  };
-
-  const send = async () => {
-    try {
-      await api.post(`/reports/${feedbackOpenId}/feedback`, { feedback: text });
-      Alert.alert('Success', 'Feedback sent');
-      setFeedbackOpenId(null);
-      setText('');
-      load();
-    } catch (e) {
-      Alert.alert('Failed', e?.response?.data?.message || e.message);
-    }
   };
 
   return (
@@ -93,7 +86,14 @@ export default function PLReportsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {reports.length === 0 && (
+        {loading && reports.length === 0 && (
+          <View style={styles.empty}>
+            <ActivityIndicator size="large" color={ACCENT} />
+            <Text style={styles.emptyText}>Loading reports...</Text>
+          </View>
+        )}
+
+        {!loading && reports.length === 0 && (
           <View style={styles.empty}>
             <Icon name="file-text" size={40} color="#94A3B8" />
             <Text style={styles.emptyText}>No reports available</Text>
@@ -191,36 +191,23 @@ export default function PLReportsScreen() {
                       />
                     </View>
                     <Row label="Present" value={r.actualStudentsPresent} />
-                    <Row
-                      label="Registered"
-                      value={r.totalRegisteredStudents}
-                    />
+                    <Row label="Registered" value={r.totalRegisteredStudents} />
                   </Section>
 
                   <Section title="Teaching">
                     <Row label="Topic Taught" value={r.topicTaught} />
-                    <Row
-                      label="Learning Outcomes"
-                      value={r.learningOutcomes}
-                    />
-                    <Row
-                      label="Recommendations"
-                      value={r.recommendations}
-                    />
+                    <Row label="Learning Outcomes" value={r.learningOutcomes} />
+                    <Row label="Recommendations" value={r.recommendations} />
                   </Section>
 
                   <Section title="Date">
                     <Row label="Created" value={formatDateTime(r.createdAt)} />
                   </Section>
 
-                  {reviewed && (
+                  {reviewed ? (
                     <View style={styles.feedbackBox}>
                       <View style={styles.feedbackHeader}>
-                        <Icon
-                          name="check-circle"
-                          size={14}
-                          color={ACCENT}
-                        />
+                        <Icon name="check-circle" size={14} color={ACCENT} />
                         <Text style={styles.feedbackLabel}>PRL Feedback</Text>
                       </View>
                       <Text style={styles.feedbackText}>{r.prlFeedback}</Text>
@@ -234,38 +221,12 @@ export default function PLReportsScreen() {
                         </Text>
                       )}
                     </View>
-                  )}
-
-                  {!reviewed && feedbackOpenId === r.id && (
-                    <View style={{ marginTop: 16 }}>
-                      <View style={styles.inputBox}>
-                        <Text style={styles.inputLabel}>Feedback</Text>
-                        <TextInput
-                          multiline
-                          value={text}
-                          onChangeText={setText}
-                          placeholder="Write your feedback..."
-                          placeholderTextColor="#94A3B8"
-                          style={styles.input}
-                        />
-                      </View>
-
-                      <TouchableOpacity
-                        style={styles.sendBtn}
-                        onPress={send}
-                      >
-                        <Text style={styles.sendText}>Send Feedback</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          setFeedbackOpenId(null);
-                          setText('');
-                        }}
-                        style={styles.cancelBtn}
-                      >
-                        <Text style={styles.cancelText}>Cancel</Text>
-                      </TouchableOpacity>
+                  ) : (
+                    <View style={styles.noFeedbackBox}>
+                      <Icon name="clock" size={14} color="#92400E" />
+                      <Text style={styles.noFeedbackText}>
+                        No PRL feedback yet
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -330,11 +291,7 @@ const styles = StyleSheet.create({
   course: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
   meta: { marginTop: 2, color: '#64748B', fontSize: 12 },
 
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   reviewed: { backgroundColor: '#DCFCE7' },
   pending: { backgroundColor: '#FEF3C7' },
   badgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3 },
@@ -362,16 +319,16 @@ const styles = StyleSheet.create({
   },
 
   row: { flexDirection: 'row', marginTop: 4 },
-  rowLabel: {
-    width: 130,
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  rowLabel: { width: 130, color: '#64748B', fontSize: 12, fontWeight: '600' },
   rowValue: { flex: 1, color: '#0F172A', fontSize: 13, lineHeight: 20 },
 
   stats: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  statsText: { marginLeft: 8, color: '#475569', fontWeight: '600', fontSize: 13 },
+  statsText: {
+    marginLeft: 8,
+    color: '#475569',
+    fontWeight: '600',
+    fontSize: 13,
+  },
 
   progressTrack: {
     height: 6,
@@ -380,11 +337,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: ACCENT,
-    borderRadius: 999,
-  },
+  progressFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 999 },
 
   feedbackBox: {
     marginTop: 16,
@@ -409,36 +362,20 @@ const styles = StyleSheet.create({
   feedbackText: { color: '#0F172A', lineHeight: 20, fontSize: 13 },
   feedbackMeta: { marginTop: 8, color: '#64748B', fontSize: 11 },
 
-  actionBtn: {
+  noFeedbackBox: {
     marginTop: 16,
-    backgroundColor: ACCENT,
-    borderRadius: 12,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionText: { color: '#fff', fontWeight: '700', marginLeft: 8, fontSize: 14 },
-
-  inputBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 14,
+    backgroundColor: '#FEF3C7',
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  inputLabel: { marginBottom: 6, fontWeight: '700', color: '#334155', fontSize: 12 },
-  input: { minHeight: 90, color: '#0F172A', textAlignVertical: 'top', fontSize: 13 },
-
-  sendBtn: {
-    marginTop: 12,
-    backgroundColor: ACCENT,
-    paddingVertical: 12,
     borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
-  sendText: { color: '#fff', fontWeight: '700' },
-
-  cancelBtn: { marginTop: 10, alignItems: 'center' },
-  cancelText: { color: '#64748B', fontWeight: '600' },
+  noFeedbackText: {
+    marginLeft: 8,
+    color: '#92400E',
+    fontWeight: '600',
+    fontSize: 12,
+  },
 });

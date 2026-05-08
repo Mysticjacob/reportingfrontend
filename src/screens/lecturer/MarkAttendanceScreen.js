@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+
 import {
   View,
   ScrollView,
@@ -46,6 +47,7 @@ export default function MarkAttendanceScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [search, setSearch] = useState('');
 
@@ -129,6 +131,9 @@ export default function MarkAttendanceScreen() {
   };
 
   const submit = async () => {
+    if (saving) return;
+
+    setSaving(true);
     try {
       const records = Object.keys(presence).map(
         studentId => ({
@@ -156,6 +161,8 @@ export default function MarkAttendanceScreen() {
         'Failed',
         e?.response?.data?.message || e.message
       );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -173,6 +180,7 @@ export default function MarkAttendanceScreen() {
 
   const absentCount =
     students.length - presentCount;
+
   if (!selected) {
     return (
       <View style={styles.container}>
@@ -234,6 +242,7 @@ export default function MarkAttendanceScreen() {
       </View>
     );
   }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -282,6 +291,7 @@ export default function MarkAttendanceScreen() {
             </Text>
           </View>
         </View>
+
         <View style={styles.searchBox}>
           <Icon
             name="search"
@@ -297,6 +307,7 @@ export default function MarkAttendanceScreen() {
             style={styles.searchInput}
           />
         </View>
+
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={styles.actionBtn}
@@ -338,6 +349,7 @@ export default function MarkAttendanceScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
         {loadingStudents ? (
           <View style={styles.loadingBox}>
             <Text>Loading students...</Text>
@@ -381,6 +393,7 @@ export default function MarkAttendanceScreen() {
                     />
                   )}
                 </View>
+
                 <View style={styles.avatar}>
                   <Text
                     style={styles.avatarText}
@@ -414,6 +427,7 @@ export default function MarkAttendanceScreen() {
                     {student.studentEmail}
                   </Text>
                 </View>
+
                 <View
                   style={[
                     styles.statusBadge,
@@ -444,15 +458,19 @@ export default function MarkAttendanceScreen() {
             );
           })
         )}
+
         <Button
-          title="Save Attendance"
+          title={saving ? 'Saving...' : 'Save Attendance'}
           onPress={submit}
+          loading={saving}
+          disabled={saving}
           style={{ marginTop: 20 }}
         />
 
         <Button
           title="Back"
           variant="ghost"
+          disabled={saving}
           onPress={() => {
             setSelected(null);
             setStudents([]);
@@ -475,6 +493,7 @@ const styles = StyleSheet.create({
   scroll: {
     padding: spacing.lg || 20,
   },
+
   courseCard: {
     backgroundColor: CARD,
     borderRadius: 22,
@@ -537,6 +556,7 @@ const styles = StyleSheet.create({
     color: TEXT_MID,
     marginTop: 4,
   },
+
   statsContainer: {
     flexDirection: 'row',
     gap: 10,
@@ -570,6 +590,7 @@ const styles = StyleSheet.create({
     color: TEXT_MID,
     fontWeight: '600',
   },
+
   searchBox: {
     height: 54,
 
@@ -623,6 +644,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+
   studentCard: {
     backgroundColor: CARD,
 
@@ -681,6 +703,7 @@ const styles = StyleSheet.create({
     backgroundColor: SUCCESS,
     borderColor: SUCCESS,
   },
+
   avatar: {
     width: 48,
     height: 48,
@@ -700,6 +723,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: PRIMARY,
   },
+
   studentName: {
     fontSize: 15,
     fontWeight: '700',
@@ -711,6 +735,7 @@ const styles = StyleSheet.create({
     color: TEXT_MID,
     marginTop: 4,
   },
+
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -721,6 +746,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
+
   loadingBox: {
     backgroundColor: CARD,
     padding: 20,

@@ -10,6 +10,9 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -59,8 +62,20 @@ export default function PRLReportsScreen() {
   const [expandedId, setExpandedId] = useState(null);
   const [feedbackOpenId, setFeedbackOpenId] = useState(null);
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const load = () => api.get('/reports').then((r) => setReports(r.data));
+  const load = async () => {
+    try {
+      setLoading(true);
+      const r = await api.get('/reports');
+      setReports(r.data);
+    } catch (e) {
+      Alert.alert('Failed to load', e?.response?.data?.message || e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     load();
@@ -76,24 +91,44 @@ export default function PRLReportsScreen() {
   };
 
   const send = async () => {
+    if (!text.trim()) {
+      Alert.alert('Empty', 'Please write feedback before sending.');
+      return;
+    }
     try {
+      setSending(true);
+      Keyboard.dismiss();
       await api.post(`/reports/${feedbackOpenId}/feedback`, { feedback: text });
       Alert.alert('Success', 'Feedback sent');
       setFeedbackOpenId(null);
       setText('');
-      load();
+      await load();
     } catch (e) {
       Alert.alert('Failed', e?.response?.data?.message || e.message);
+    } finally {
+      setSending(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
-        {reports.length === 0 && (
+        {loading && reports.length === 0 && (
+          <View style={styles.empty}>
+            <ActivityIndicator size="large" color={ACCENT} />
+            <Text style={styles.emptyText}>Loading reports...</Text>
+          </View>
+        )}
+
+        {!loading && reports.length === 0 && (
           <View style={styles.empty}>
             <Icon name="file-text" size={40} color="#94A3B8" />
             <Text style={styles.emptyText}>No reports available</Text>
@@ -191,22 +226,13 @@ export default function PRLReportsScreen() {
                       />
                     </View>
                     <Row label="Present" value={r.actualStudentsPresent} />
-                    <Row
-                      label="Registered"
-                      value={r.totalRegisteredStudents}
-                    />
+                    <Row label="Registered" value={r.totalRegisteredStudents} />
                   </Section>
 
                   <Section title="Teaching">
                     <Row label="Topic Taught" value={r.topicTaught} />
-                    <Row
-                      label="Learning Outcomes"
-                      value={r.learningOutcomes}
-                    />
-                    <Row
-                      label="Recommendations"
-                      value={r.recommendations}
-                    />
+                    <Row label="Learning Outcomes" value={r.learningOutcomes} />
+                    <Row label="Recommendations" value={r.recommendations} />
                   </Section>
 
                   <Section title="Date">
@@ -243,11 +269,25 @@ export default function PRLReportsScreen() {
                           placeholder="Write your feedback..."
                           placeholderTextColor="#94A3B8"
                           style={styles.input}
+                          editable={!sending}
                         />
                       </View>
 
-                      <TouchableOpacity style={styles.sendBtn} onPress={send}>
-                        <Text style={styles.sendText}>Send Feedback</Text>
+                      <TouchableOpacity
+                        style={[styles.sendBtn, sending && { opacity: 0.7 }]}
+                        onPress={send}
+                        disabled={sending}
+                      >
+                        {sending ? (
+                          <View style={styles.sendingRow}>
+                            <ActivityIndicator size="small" color="#fff" />
+                            <Text style={[styles.sendText, { marginLeft: 8 }]}>
+                              Sending...
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.sendText}>Send Feedback</Text>
+                        )}
                       </TouchableOpacity>
 
                       <TouchableOpacity
@@ -256,6 +296,7 @@ export default function PRLReportsScreen() {
                           setText('');
                         }}
                         style={styles.cancelBtn}
+                        disabled={sending}
                       >
                         <Text style={styles.cancelText}>Cancel</Text>
                       </TouchableOpacity>
@@ -277,13 +318,13 @@ export default function PRLReportsScreen() {
           );
         })}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: 16, paddingBottom: 80 },
 
   empty: {
     backgroundColor: '#fff',
@@ -333,11 +374,7 @@ const styles = StyleSheet.create({
   course: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
   meta: { marginTop: 2, color: '#64748B', fontSize: 12 },
 
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   reviewed: { backgroundColor: '#DCFCE7' },
   pending: { backgroundColor: '#FEF3C7' },
   badgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.3 },
@@ -365,12 +402,7 @@ const styles = StyleSheet.create({
   },
 
   row: { flexDirection: 'row', marginTop: 4 },
-  rowLabel: {
-    width: 130,
-    color: '#64748B',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  rowLabel: { width: 130, color: '#64748B', fontSize: 12, fontWeight: '600' },
   rowValue: { flex: 1, color: '#0F172A', fontSize: 13, lineHeight: 20 },
 
   stats: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -388,11 +420,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: ACCENT,
-    borderRadius: 999,
-  },
+  progressFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 999 },
 
   feedbackBox: {
     marginTop: 16,
@@ -426,12 +454,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionText: {
-    color: '#fff',
-    fontWeight: '700',
-    marginLeft: 8,
-    fontSize: 14,
-  },
+  actionText: { color: '#fff', fontWeight: '700', marginLeft: 8, fontSize: 14 },
 
   inputBox: {
     backgroundColor: '#F8FAFC',
@@ -461,6 +484,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendText: { color: '#fff', fontWeight: '700' },
+  sendingRow: { flexDirection: 'row', alignItems: 'center' },
 
   cancelBtn: { marginTop: 10, alignItems: 'center' },
   cancelText: { color: '#64748B', fontWeight: '600' },
